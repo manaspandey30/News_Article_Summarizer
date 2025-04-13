@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Summarizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7b68ee;
+            --primary-light: #9d8df1;
+            --secondary-color: #4cc9f0;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --dark-input: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #ff7eee;
+            --success-color: #4cc9f0;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 15px rgba(123, 104, 238, 0.4);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+        
+        /* Dynamic background elements */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+            z-index: -2;
+        }
+        
+        .bg-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary-color);
+            opacity: 0.1;
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        .particle-1 {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            left: -150px;
+            animation-delay: 0s;
+            background: radial-gradient(var(--primary-color), transparent 70%);
+        }
+        
+        .particle-2 {
+            width: 250px;
+            height: 250px;
+            bottom: -100px;
+            right: -50px;
+            animation-delay: 5s;
+            background: radial-gradient(var(--secondary-color), transparent 70%);
+        }
+        
+        .particle-3 {
+            width: 200px;
+            height: 200px;
+            top: 70%;
+            left: 20%;
+            animation-delay: 10s;
+            background: radial-gradient(var(--accent-color), transparent 70%);
+        }
+        
+        .particle-4 {
+            width: 150px;
+            height: 150px;
+            top: 25%;
+            right: 15%;
+            animation-delay: 15s;
+            background: radial-gradient(var(--secondary-color), transparent 70%);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .app-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .app-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(123, 104, 238, 0.5);
+        }
+        
+        .app-title span {
+            color: var(--primary-light);
+        }
+        
+        .app-description {
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+        }
+        
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+            background-color: var(--dark-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glow), var(--box-shadow);
+        }
+        
+        .card-header {
+            background-color: rgba(123, 104, 238, 0.2);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 18px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 15px;
+            background-color: var(--dark-input);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.25);
+            border-color: var(--primary-color);
+            background-color: rgba(45, 45, 45, 0.9);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(123, 104, 238, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(123, 104, 238, 0.5);
+            background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
+        }
+        
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: var(--dark-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 70px;
+            height: 70px;
+            border: 3px solid rgba(123, 104, 238, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(123, 104, 238, 0.2);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        #results {
+            display: none;
+        }
+        
+        #error-message {
+            color: #ff6b6b;
+            display: none;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background-color: rgba(255, 107, 107, 0.1);
+            margin-top: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+        
+        .key-point {
+            padding: 18px;
+            background-color: rgba(123, 104, 238, 0.05);
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+            border-radius: 0 10px 10px 0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .key-point:hover {
+            background-color: rgba(123, 104, 238, 0.1);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .key-point::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+            z-index: 1;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-top: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .summary-text {
+            line-height: 1.8;
+            background-color: rgba(123, 104, 238, 0.05);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(123, 104, 238, 0.1);
+            color: var(--text-primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary-text::before {
+            content: '""';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 30px;
+            font-family: Georgia, serif;
+            color: rgba(123, 104, 238, 0.2);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-outline-secondary:hover {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 5px 15px rgba(123, 104, 238, 0.3);
+        }
+        
+        .btn-icon {
+            margin-right: 10px;
+        }
+        
+        .result-header {
+            position: relative;
+            padding-right: 120px;
+        }
+        
+        .source-badge {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid rgba(123, 104, 238, 0.3);
+            box-shadow: 0 0 10px rgba(123, 104, 238, 0.2);
+        }
+        
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(123, 104, 238, 0.3);
+        }
+        
+        .features {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .feature-item {
+            flex: 0 0 48%;
+            background-color: var(--dark-card);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .feature-text {
+            color: var(--text-secondary);
+        }
+        
+        .feature-text strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .count-badge {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            font-size: 12px;
+            margin-right: 10px;
+            box-shadow: 0 2px 5px rgba(123, 104, 238, 0.3);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            opacity: 0.5;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .app-title {
+                font-size: 24px;
+            }
+            
+            .app-description {
+                font-size: 14px;
+            }
+            
+            .feature-item {
+                flex: 0 0 100%;
+            }
+            
+            .result-header {
+                padding-right: 15px;
+            }
+            
+            .source-badge {
+                position: static;
+                transform: none;
+                display: inline-block;
+                margin-top: 10px;
+                margin-left: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dynamic background elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-particle particle-1"></div>
+    <div class="bg-particle particle-2"></div>
+    <div class="bg-particle particle-3"></div>
+    <div class="bg-particle particle-4"></div>
+    
+    <div class="container">
+        <div class="app-header">
+            <h1 class="app-title">Smart <span>Article</span> Summarizer</h1>
+            <p class="app-description">Get concise summaries, key insights, and main points from any news article with our AI-powered tool</p>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Fast Analysis</strong>
+                        Summarize any article in seconds
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Key Insights</strong>
+                        Extract the most important points
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Multiple Sources</strong>
+                        Works with most news websites
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Simplified Content</strong>
+                        Easy to understand summaries
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-link me-2"></i> Enter Article URL
+            </div>
+            <div class="card-body">
+                <form id="article-form">
+                    <div class="mb-3">
+                        <input type="url" class="form-control" id="article-url" 
+                            placeholder="https://example.com/article" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary pulse">
+                        <i class="fas fa-magic btn-icon"></i>Summarize Article
+                    </button>
+                </form>
+                <div id="error-message" class="mt-3"></div>
+            </div>
+        </div>
+        
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p class="mt-3">Analyzing article, just a moment...</p>
+        </div>
+        
+        <div id="results">
+            <div class="card">
+                <div class="card-header result-header">
+                    <i class="fas fa-newspaper me-2"></i> <span id="article-title">Article Title</span>
+                    <span class="source-badge">Direct Source</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="section-title">
+                        <i class="fas fa-file-alt"></i> Summary
+                    </h5>
+                    <p id="summary" class="summary-text"></p>
+                    
+                    <h5 class="section-title">
+                        <i class="fas fa-lightbulb"></i> Key Points
+                    </h5>
+                    <div id="key-points"></div>
+                    
+                    <div class="text-center mt-4">
+                        <a id="original-article" href="#" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fas fa-external-link-alt btn-icon"></i>View Original Article
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Made with <i class="fas fa-heart" style="color: var(--accent-color);"></i> &bull; Smart Article Summarizer &copy; 2024
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('article-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('article-url').value;
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('results');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Reset and show loader
+            errorMessage.style.display = 'none';
+            results.style.display = 'none';
+            loader.style.display = 'block';
+            
+            // Call the API
+            fetch('http://localhost:5000/api/summarize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to analyze the article');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                loader.style.display = 'none';
+                
+                // Update UI with results
+                document.getElementById('article-title').textContent = data.title;
+                document.getElementById('summary').textContent = data.summary;
+                document.getElementById('original-article').href = url;
+                
+                // Update key points
+                const keyPointsContainer = document.getElementById('key-points');
+                keyPointsContainer.innerHTML = '';
+                
+                data.key_points.forEach((point, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'key-point';
+                    div.innerHTML = `<span class="count-badge">${index + 1}</span> ${point}`;
+                    keyPointsContainer.appendChild(div);
+                });
+                
+                // Show results
+                results.style.display = 'block';
+                
+                // Animate scroll to results
+                results.scrollIntoView({ behavior: 'smooth' });
+            })
+            .catch(error => {
+                // Hide loader
+                loader.style.display = 'none';
+                
+                // Show error
+                errorMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${error.message}`;
+                errorMessage.style.display = 'block';
+                console.error('Error:', error);
+            });
+        });
+        
+        // Create animated background
+        function createStars() {
+            const count = 100;
+            const scene = document.createElement('div');
+            scene.classList.add('animated-bg');
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                const size = Math.random() * 2;
+                
+                Object.assign(star.style, {
+                    position: 'absolute',
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: '50%',
+                    animation: `twinkle ${3 + Math.random() * 7}s ease-in-out infinite`
+                });
+                
+                if (Math.random() > 0.6) {
+                    star.style.boxShadow = '0 0 3px rgba(255, 255, 255, 0.7)';
+                }
+                
+                scene.appendChild(star);
+            }
+            
+            document.body.appendChild(scene);
+        }
+        
+        // Add CSS animation for twinkling stars
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes twinkle {
+                0%, 100% { opacity: 0.2; }
+                50% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+        
+        // Initialize stars
+        createStars();
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+</body>
+</html> 

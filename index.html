@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Article Summarizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4a6fa5;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background-color: #4a6fa5;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #3a5a8f;
+        }
+        .sentiment-positive {
+            color: #28a745;
+        }
+        .sentiment-negative {
+            color: #dc3545;
+        }
+        .sentiment-neutral {
+            color: #6c757d;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        #error-message {
+            color: #dc3545;
+            display: none;
+            margin-top: 10px;
+        }
+        .key-point {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-left: 4px solid #4a6fa5;
+            background-color: #f8f9fa;
+        }
+        .sentiment-meter {
+            height: 10px;
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .sentiment-value {
+            height: 100%;
+            position: absolute;
+            transition: width 0.5s;
+        }
+        .positive-value {
+            background-color: #28a745;
+            right: 50%;
+        }
+        .negative-value {
+            background-color: #dc3545;
+            left: 50%;
+        }
+        .header-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #343a40;
+            text-align: center;
+            font-weight: 700;
+        }
+        .header-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #6c757d;
+            text-align: center;
+        }
+        .source-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        .source-direct {
+            background-color: #28a745;
+            color: white;
+        }
+        .source-archive {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .source-api {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .info-tooltip {
+            cursor: pointer;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            float: right;
+            padding: 5px;
+        }
+        .copy-btn:hover {
+            color: #4a6fa5;
+        }
+        .reading-time {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="text-center mb-4">
+        <h1 class="header-title">Smart Article Summarizer</h1>
+        <p class="header-subtitle">Get concise summaries, key points, and sentiment analysis from any news article</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-link me-2"></i> Enter Article URL
+        </div>
+        <div class="card-body">
+            <form id="article-form">
+                <div class="mb-3">
+                    <input type="url" class="form-control" id="article-url" placeholder="https://example.com/news-article" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-magic me-2"></i> Analyze Article
+                </button>
+                <div id="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Analyzing the article...</p>
+    </div>
+
+    <div id="results" style="display: none;">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-newspaper me-2"></i> 
+                <span id="article-title">Article Title</span>
+                <span id="source-badge" class="source-badge ms-auto">Source</span>
+            </div>
+            <div class="card-body">
+                <div class="reading-time mb-3">
+                    <i class="fas fa-clock me-1"></i> Est. reading time: <span id="reading-time">2 min</span>
+                </div>
+                
+                <h5 class="card-title">Summary <button class="copy-btn" id="copy-summary" title="Copy summary"><i class="fas fa-copy"></i></button></h5>
+                <p class="card-text" id="summary"></p>
+                
+                <hr>
+                
+                <h5 class="card-title">
+                    <i class="fas fa-lightbulb me-2"></i> Key Points
+                    <button class="copy-btn" id="copy-key-points" title="Copy key points"><i class="fas fa-copy"></i></button>
+                </h5>
+                <div id="key-points"></div>
+                
+                <hr>
+                
+                <h5 class="card-title">
+                    <i class="fas fa-chart-bar me-2"></i> Sentiment Analysis
+                    <i class="fas fa-info-circle info-tooltip ms-2" data-bs-toggle="tooltip" title="Sentiment analysis evaluates the emotional tone of the article"></i>
+                </h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Negative</span>
+                    <span id="sentiment-label" class="fw-bold">Neutral</span>
+                    <span class="fw-bold">Positive</span>
+                </div>
+                <div class="sentiment-meter">
+                    <div class="sentiment-value negative-value" id="negative-meter"></div>
+                    <div class="sentiment-value positive-value" id="positive-meter"></div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Compound Score: <span id="compound-score">0.0</span> |
+                        Positive: <span id="positive-score">0.0</span> |
+                        Negative: <span id="negative-score">0.0</span> |
+                        Neutral: <span id="neutral-score">0.0</span>
+                    </small>
+                </div>
+                
+                <div id="source-info" class="alert alert-info mt-3" style="display: none;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="source-message"></span>
+                </div>
+                
+                <div class="mt-4">
+                    <a id="original-article" href="#" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt me-2"></i> View Original Article
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('article-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const url = document.getElementById('article-url').value;
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('error-message');
+        
+        // Reset and show loader
+        errorMessage.style.display = 'none';
+        results.style.display = 'none';
+        loader.style.display = 'block';
+        
+        // Call the API
+        fetch('http://localhost:5000/api/summarize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: url })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to analyze the article');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide loader
+            loader.style.display = 'none';
+            
+            // Update UI with results
+            document.getElementById('article-title').textContent = data.title;
+            document.getElementById('summary').textContent = data.summary;
+            document.getElementById('original-article').href = url;
+            
+            // Set source badge
+            const sourceBadge = document.getElementById('source-badge');
+            sourceBadge.textContent = data.source === 'direct' ? 'Direct Source' : 
+                                     data.source === 'archive' ? 'Archive.is' : 'API Extraction';
+            sourceBadge.className = 'source-badge ms-auto source-' + data.source;
+            
+            // Show source info message if not direct
+            const sourceInfo = document.getElementById('source-info');
+            const sourceMessage = document.getElementById('source-message');
+            
+            if (data.source !== 'direct') {
+                sourceInfo.style.display = 'block';
+                if (data.source === 'archive') {
+                    sourceMessage.textContent = 'This article was retrieved from an archived version as the original source may have a paywall or access restrictions.';
+                } else if (data.source === 'api') {
+                    sourceMessage.textContent = 'This article was extracted using an external API as the original source may have a paywall or access restrictions.';
+                }
+            } else {
+                sourceInfo.style.display = 'none';
+            }
+            
+            // Estimate reading time
+            const wordCount = data.summary.split(' ').length;
+            const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // Assuming 200 words per minute
+            document.getElementById('reading-time').textContent = readingTime + ' min';
+            
+            // Update key points
+            const keyPointsContainer = document.getElementById('key-points');
+            keyPointsContainer.innerHTML = '';
+            
+            data.key_points.forEach(point => {
+                const div = document.createElement('div');
+                div.className = 'key-point';
+                div.textContent = point;
+                keyPointsContainer.appendChild(div);
+            });
+            
+            // Update sentiment
+            const sentimentLabel = document.getElementById('sentiment-label');
+            sentimentLabel.textContent = data.sentiment.overall;
+            
+            // Remove all sentiment classes
+            sentimentLabel.classList.remove('sentiment-positive', 'sentiment-negative', 'sentiment-neutral');
+            
+            // Add appropriate sentiment class
+            if (data.sentiment.overall === 'Positive') {
+                sentimentLabel.classList.add('sentiment-positive');
+            } else if (data.sentiment.overall === 'Negative') {
+                sentimentLabel.classList.add('sentiment-negative');
+            } else {
+                sentimentLabel.classList.add('sentiment-neutral');
+            }
+            
+            // Update sentiment scores
+            document.getElementById('compound-score').textContent = data.sentiment.scores.compound.toFixed(2);
+            document.getElementById('positive-score').textContent = data.sentiment.scores.pos.toFixed(2);
+            document.getElementById('negative-score').textContent = data.sentiment.scores.neg.toFixed(2);
+            document.getElementById('neutral-score').textContent = data.sentiment.scores.neu.toFixed(2);
+            
+            // Update sentiment meter
+            const posScore = data.sentiment.scores.pos;
+            const negScore = data.sentiment.scores.neg;
+            
+            document.getElementById('positive-meter').style.width = (posScore * 50) + '%';
+            document.getElementById('negative-meter').style.width = (negScore * 50) + '%';
+            
+            // Show results
+            results.style.display = 'block';
+        })
+        .catch(error => {
+            // Hide loader
+            loader.style.display = 'none';
+            
+            // Show error
+            errorMessage.textContent = error.message;
+            errorMessage.style.display = 'block';
+        });
+    });
+    
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+        
+        // Copy functionality
+        document.getElementById('copy-summary').addEventListener('click', function() {
+            copyTextToClipboard(document.getElementById('summary').textContent);
+            showCopySuccess(this);
+        });
+        
+        document.getElementById('copy-key-points').addEventListener('click', function() {
+            const keyPoints = Array.from(document.querySelectorAll('.key-point'))
+                .map(el => el.textContent)
+                .join('\n• ');
+            copyTextToClipboard('• ' + keyPoints);
+            showCopySuccess(this);
+        });
+    });
+    
+    function copyTextToClipboard(text) {
+        navigator.clipboard.writeText(text).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+    
+    function showCopySuccess(element) {
+        const originalHTML = element.innerHTML;
+        element.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            element.innerHTML = originalHTML;
+        }, 1500);
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
